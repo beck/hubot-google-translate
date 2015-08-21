@@ -86,41 +86,24 @@ module.exports = (robot) ->
     origin = if msg.match[1] isnt undefined then getCode(msg.match[1], languages) else 'auto'
     target = if msg.match[2] isnt undefined then getCode(msg.match[2], languages) else 'en'
 
-    msg.http("https://translate.google.com/translate_a/single")
+    msg.http("https://www.googleapis.com/language/translate/v2")
       .query({
-        client: 't'
-        hl: 'en'
-        sl: origin
-        ssel: 0
-        tl: target
-        tsel: 0
+        key: process.env.HUBOT_YOUTUBE_API_KEY
+        target: target
         q: term
-        ie: 'UTF-8'
-        oe: 'UTF-8'
-        otf: 1
-        dt: ['bd', 'ex', 'ld', 'md', 'qca', 'rw', 'rm', 'ss', 't', 'at']
       })
       .header('User-Agent', 'Mozilla/5.0')
       .get() (err, res, body) ->
-        if err
+        if err or res.statusCode != 200
           msg.send "Failed to connect to GAPI"
           robot.emit 'error', err, res
           return
-
         try
-          if body.length > 4 and body[0] == '['
-            parsed = eval(body)
-            language = languages[parsed[2]]
-            parsed = parsed[0] and parsed[0][0] and parsed[0][0][0]
-            parsed and= parsed.trim()
-            if parsed
-              if msg.match[2] is undefined
-                msg.send "#{term} is #{language} for #{parsed}"
-              else
-                msg.send "The #{language} #{term} translates as #{parsed} in #{languages[target]}"
-          else
-            throw new SyntaxError 'Invalid JS code'
-
+          console.log(body)
+          response = JSON.parse(body)
+          for translation in response.data.translations
+            language = languages[translation.detectedSourceLanguage]
+            msg.send "#{term} is #{language} for #{translation.translatedText}"
         catch err
           msg.send "Failed to parse GAPI response"
           robot.emit 'error', err
