@@ -91,6 +91,7 @@ module.exports = (robot) ->
         key: process.env.HUBOT_YOUTUBE_API_KEY
         target: target
         q: term
+        format: "text"
       })
       .header('User-Agent', 'Mozilla/5.0')
       .get() (err, res, body) ->
