@@ -88,7 +88,7 @@ module.exports = (robot) ->
 
     msg.http("https://www.googleapis.com/language/translate/v2")
       .query({
-        key: process.env.HUBOT_YOUTUBE_API_KEY
+        key: process.env.HUBOT_GOOGLE_TRANSLATE_API_KEY
         target: target
         q: term
         format: "text"
@@ -100,7 +100,7 @@ module.exports = (robot) ->
           robot.emit 'error', err, res
           return
         try
-          console.log(body)
+          # console.log(body)
           response = JSON.parse(body)
           for translation in response.data.translations
             language = languages[translation.detectedSourceLanguage]
