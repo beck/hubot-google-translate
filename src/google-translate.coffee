@@ -2,10 +2,11 @@
 #   Allows Hubot to know many languages.
 #
 # Commands:
-#   hubot translate me <phrase> - Searches for a translation for the <phrase> and then prints that bad boy out.
-#   hubot translate me from <source> into <target> <phrase> - Translates <phrase> from <source> into <target>. Both <source> and <target> are optional
+#   hubot translate <phrase> - Translates <phrase> into English.
+#   hubot translate from <source> into <target> <phrase> - Translates <phrase> from <source> into <target>. Both <source> and <target> are optional.
 
 languages =
+  "auto": "auto",
   "af": "Afrikaans",
   "sq": "Albanian",
   "ar": "Arabic",
@@ -73,7 +74,7 @@ languages =
 
 getCode = (language,languages) ->
   for code, lang of languages
-      return code if lang.toLowerCase() is language.toLowerCase()
+    return code if lang.toLowerCase() is language.toLowerCase()
 
 module.exports = (robot) ->
   language_choices = (language for _, language of languages).sort().join('|')
@@ -83,8 +84,10 @@ module.exports = (robot) ->
                        '(.*)', 'i')
   robot.respond pattern, (msg) ->
     term   = "\"#{msg.match[3]?.trim()}\""
-    origin = if msg.match[1] isnt undefined then getCode(msg.match[1], languages) else 'auto'
-    target = if msg.match[2] isnt undefined then getCode(msg.match[2], languages) else 'en'
+    origin_lang = msg.match[1] or 'auto'
+    origin = getCode(origin_lang, languages)
+    target_lang = msg.match[2] or 'English'
+    target = getCode(target_lang, languages)
 
     msg.http("https://www.googleapis.com/language/translate/v2")
       .query({
