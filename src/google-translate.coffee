@@ -95,16 +95,23 @@ module.exports = (robot) ->
       })
       .header('User-Agent', 'Mozilla/5.0')
       .get() (err, res, body) ->
-        if err or res.statusCode != 200
+        if err
           msg.send "Failed to connect to GAPI"
           robot.emit 'error', err, res
           return
+
         try
-          # console.log(body)
           response = JSON.parse(body)
-          for translation in response.data.translations
-            language = languages[translation.detectedSourceLanguage]
-            msg.send "#{term} is #{language} for #{translation.translatedText}"
         catch err
           msg.send "Failed to parse GAPI response"
           robot.emit 'error', err
+          return
+
+        if res.statusCode != 200
+          msg.send "GAPI error #{res.statusCode} #{response.error.message}"
+          robot.emit 'error', new Error(response.error.message)
+          return
+
+        for translation in response.data.translations
+          language = languages[translation.detectedSourceLanguage]
+          msg.send "#{term} is #{language} for #{translation.translatedText}"
